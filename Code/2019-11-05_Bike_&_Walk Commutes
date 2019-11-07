@@ -1,0 +1,83 @@
+---
+title: "2019-11-05_Bike_Walk_Commute"
+output:
+  word_document: default
+  pdf_document: default
+  html_notebook: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include = False}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(maps)
+```
+
+```{r}
+commute_mode <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-11-05/commute.csv")
+```
+
+```{r}
+commute_mode %>%
+  drop_na(state_region)
+
+head(commute_mode)
+```
+
+```{r}
+#remove NA state regions before generating a violin plot for each reagion of percentage of walker and biker depending on city size.
+commute_mode %>%
+   filter(!is.na(state_region)) %>%
+    ggplot(aes(city_size, percent, color = mode, fill = mode) ) +
+      geom_violin() +
+        facet_grid(. ~ state_region)
+```
+
+```{r}
+#load map data for US states
+us_map <- map_data("state")
+
+#calulate mean percentage of walking and biking to work per state, then calculate difference and sum
+commute_perstate <- commute_mode %>%
+  group_by(state, mode) %>%
+  summarise(mean.perc = mean(percent)) %>%
+  pivot_wider(names_from = mode, values_from = mean.perc) %>%
+  mutate(diff = Bike - Walk,
+         sum = Bike + Walk)
+
+#plot summed means of biking and walking to work on a map
+ggplot() +
+  geom_map(data = us_map, map = us_map, aes(x = long, y = lat, map_id = region), fill = "white", color = "white") +
+  geom_map(data = commute_perstate, map = us_map, aes(fill = sum/100, map_id = tolower(state))) +
+  theme_void() +
+  scale_fill_gradient(labels = scales::percent) +
+  labs(title = "Which state is leading in combined biking and walking to work?",
+       subtitle = "Sum of mean percentage of biking and walking in a state.",
+       fill = "Percent of total/individuals")
+```
+
+```{r}
+#remove NA state regions before generating a boxplot for each region of percentage of walker and biker depending on city size.
+commute_mode %>%
+   filter(!is.na(state_region)) %>%
+    ggplot(aes(city_size, percent, color = mode, fill = mode) ) +
+    geom_boxplot(outlier.colour = "magenta", outlier.shape = 1, outlier.alpha = 0.5) + #outliers are magenta and fade
+    facet_grid(. ~ state_region) + #separates plot depending on state_region
+    labs(title = "Modes less travelled: what percentage of a US regions population walk or cycles to work?",
+               subtitle = "Bicycling and Walking to Work in the United States: 2008–2012:  https://www.census.gov/library/publications/2014/acs/acs-25.html?#",
+               x = "City Size: Lrg > 200k, Med = 100k-200k, Sml = 20k-100k",
+               y = "Percentage of population") +
+    theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #centres title and subtitle
+```
+
+```{r}
+ggsave("modes_less_travelled.png")
+```
+
+```{r}
+save.image("~/R/TidyTuesday/2019-11-05_Bike_Walk_Commute/2019-11-05_Bike_Walk_Commute.RData")
+```
