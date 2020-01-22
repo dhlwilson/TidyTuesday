@@ -1,0 +1,51 @@
+---
+title: "2020-01-21_Spotify_Songs"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(png)
+library(ggpubr)
+library(ggsci)
+theme_bw(minimal())
+
+# Get the Data
+spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
+
+#Filter data for GNR Songs and rename album discrepancies
+GNR_Spotify_Songs <- spotify_songs %>% 
+  mutate(track_album_name = replace(track_album_name, track_album_name == "Appetite For Destruction (Explicit Version)", "Appetite For Destruction")) %>%
+  mutate(track_album_name = replace(track_album_name, track_album_name == "Use Your Illusion II (Explicit Version)", "Use Your Illusion II")) %>%
+  mutate(track_album_name = replace(track_album_name, track_album_name == "Chinese Democracy (Version 1)", "Chinese Democracy")) %>%
+  mutate(track_album_name = replace(track_album_name, track_album_name == "Greatest Hits (EU Version)", "Greatest Hits")) %>%
+  filter(track_artist =="Guns N' Roses")
+
+img <- png::readPNG("AfD.png")
+
+GNR_Spotify_Songs %>% 
+  filter(track_popularity > 50) %>%
+  mutate(track_name = fct_reorder(track_name, track_popularity)) %>%
+  ggplot(aes(track_name, track_popularity, color = track_album_name)) +
+  background_image(img) +
+  theme_classic() +
+  geom_point(size = 10) +
+  scale_color_startrek()+
+  coord_flip() +
+  theme(axis.text = element_text(size = 15, face = "bold"),
+        axis.title = element_text(size=15,face="bold"),
+        plot.title = element_text(size=20,face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size=10, hjust = 0.5),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15, face="bold", hjust = 0.5)) +
+  labs(x = "",
+       y = "Song Popularity",
+       title = "Are these Guns'n'Roses Greatest Hits?",
+       subtitle = "Data extracted from Spotify using Spotifyr: https://www.rcharlie.com/spotifyr/",
+       colour = "Album")
+
+ggsave("GNR_most_popular_songs.png")
+```
+
