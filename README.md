@@ -11,3 +11,7 @@ More info at https://github.com/rfordatascience/tidytuesday
 **[2019-11-05 Bike & Walk Commutes](Code/2019-11-05_Bike_Walk_Commute.Rmd)**
 ------
 <img src="Plots/modes_less_travelled.png" width="700">
+
+**[2020-01-21 Spotify Songs](Code/2020-01-21_Spotify_Songs.Rmd)**
+------
+<img src="Plots/GNR_most_popular_songs.png" width="700">
